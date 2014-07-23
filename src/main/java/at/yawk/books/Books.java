@@ -13,8 +13,12 @@ import java.io.Reader;
 import java.util.List;
 import java.util.logging.Level;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -27,6 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Books extends JavaPlugin implements Listener {
     private int slot;
     private ItemStack stack;
+    private boolean prohibitInteraction;
 
     @Override
     public void onEnable() {
@@ -45,6 +50,7 @@ public class Books extends JavaPlugin implements Listener {
         if (config.has("amount")) {
             stack.setAmount(config.get("amount").getAsInt());
         }
+        prohibitInteraction = config.get("prohibit_interaction").getAsBoolean();
         BookMeta meta = (BookMeta) stack.getItemMeta();
         meta.setDisplayName(config.get("display_name").getAsString());
         meta.setAuthor(config.get("author").getAsString());
@@ -62,9 +68,42 @@ public class Books extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        PlayerInventory inventory = event.getPlayer().getInventory();
+        give(event.getPlayer());
+    }
+
+    private void give(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        ItemStack copy = stack.clone();
+        inventory.remove(copy);
         if (inventory.getItem(slot) == null) {
-            inventory.setItem(slot, stack.clone());
+            inventory.setItem(slot, copy);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (prohibitInteraction && event.getClickedInventory() instanceof PlayerInventory && event.getSlot() == slot) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (prohibitInteraction && event.getPlayer().getInventory().getHeldItemSlot() == slot) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onDrop(final PlayerDropItemEvent event) {
+        if (prohibitInteraction && event.getItemDrop().getItemStack().equals(this.stack)) {
+            event.setCancelled(true);
+            getServer().getScheduler().runTask(this, new Runnable() {
+                @Override
+                public void run() {
+                    give(event.getPlayer());
+                }
+            });
         }
     }
 }

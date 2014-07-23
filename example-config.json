@@ -1,5 +1,6 @@
 {
     "slot": 1,
+    "prohibit_interaction": true,
     "display_name": "Display Name",
     "title": "Title",
     "author": "Author",
