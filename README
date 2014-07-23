@@ -1,0 +1,1 @@
+Inside `plugins/`, make a folder called `Books` and place `example-config.json` as `config.json` in there.
