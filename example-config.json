@@ -1,0 +1,10 @@
+{
+    "slot": 1,
+    "display_name": "Display Name",
+    "title": "Title",
+    "author": "Author",
+    "pages": [
+        "§lPage 1\n§rLorem\nIpsum",
+        "§lPage 2\n§rLorem\nIpsum"
+    ]
+}
